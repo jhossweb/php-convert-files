@@ -10,6 +10,10 @@
     
     <form action="upload.php" method="post" enctype="multipart/form-data">
         <input type="file" name="file">
+        <select name="format">
+            <option value="pdf"> PDF </option>
+            <option value="docx"> Word </option>
+        </select>
         <input type="submit" value="Change">
     </form>
 
