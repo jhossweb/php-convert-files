@@ -4,14 +4,19 @@ namespace App;
 
 use App\Convert\DOCXConvert;
 use App\Convert\PDFConvert;
-use App\TypesFormat\Format;
+use UnhandledMatchError;
 
-class FactoryMethod 
+class FactoryMethod
 {
-    static function createConvert (Format $format, $filename, $content) {
-        
-        if($format === Format::PDF) {
-            return PDFConvert::convert($filename, $content);
+    static function createConvert($format, $filename, $content) {
+        try {
+            return match ($format) {
+                "pdf" => PDFConvert::convert($filename, $content),
+                default => UnhandledMatchError::class
+            };
+        } catch (\UnhandledMatchError $e) {
+            echo "Formato no válido: $format";
+            echo $e->getMessage();
         }
     }
 }
