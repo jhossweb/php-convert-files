@@ -1,6 +1,5 @@
 FROM php:8.3-apache
-RUN docker-php-ext-install pdo pdo_mysql
-
+RUN docker-php-ext-install pdo pdo_mysql 
 
 #Config apache
 RUN a2enmod rewrite
@@ -12,7 +11,9 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
 # git install
 RUN apt-get -y update
-RUN apt-get -y install git
+RUN apt-get -y install git libzip-dev
+RUN docker-php-ext-install zip
+
 
 WORKDIR /var/www/html
 

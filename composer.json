@@ -1,7 +1,9 @@
 {
     "name": "php/change-files",
     "require": {
-        "dompdf/dompdf": "^2.0"
+        "dompdf/dompdf": "^2.0",
+        "phpoffice/phpword": "^1.2",
+        "tecnickcom/tcpdf": "*"
     },
     "autoload": {
         "psr-4": {
