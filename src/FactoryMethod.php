@@ -3,15 +3,16 @@
 namespace App;
 
 use App\Convert\DOCXConvert;
-use App\Convert\PDFConvert;
+use App\Convert\DocxToPdfConvert;
 use UnhandledMatchError;
 
 class FactoryMethod
 {
-    static function createConvert($format, $filename, $content) {
+    static function formatToConvert($format, $filename) {
         try {
+            
             return match ($format) {
-                "pdf" => PDFConvert::convert($filename, $content),
+                "pdf" => DocxToPdfConvert::convert( $filename),
                 default => UnhandledMatchError::class
             };
         } catch (\UnhandledMatchError $e) {
