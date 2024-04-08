@@ -10,6 +10,25 @@
 </p>
 
 
+## Cosas a Tener en cuenta
+
+<p>
+    Para desarrollar o hacer uso de este proyecto, debes tener instalada estas extensiones en php
+
+</p>
+<ul>
+    <li> Tener una versión de PHP 7.1+ </li>
+    <li> DOM Extensión </li>
+    <li> Json </li>
+    <li> XML Parser </li>
+    <li> XMLWrite </li>
+    <li> Zip </li>
+</ul>
+
+<p>
+    Para comprobar si tenemos estas extensiones, usemos el método *phpinfo()* de php
+</p>
+
 ## Obtener el proyecto
 
 <p>
