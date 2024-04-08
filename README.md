@@ -5,6 +5,10 @@
     y de **Word** a **PDF**
 </p>
 
+<p>
+    Para este proyecto usé el patrón `Factory`. Además, PHP provee una manera más elegante para validar información que un if o un swith. Ese método se llama: *match* integrado en sus últimas versiones.
+</p>
+
 
 ## Obtener el proyecto
 
@@ -18,6 +22,8 @@ composer update
 
 ## Guardando archivos en el servidor
 
+este código se encuentra el archivo `upload.php`
+
 ```
 $filename = $_FILES["file"]["name"];
 $pathFiles =  __DIR__ . '/uploads/' ;
@@ -26,27 +32,79 @@ move_uploaded_file($tmp_file, $pathFiles . basename($filename));
 ```
 
 
+## Clase Factory
+
+<p>
+    Esta clase se encarga de escoger qué clase usar, dependiendo del formato elegido.
+</p>
+
+```
+namespace App;
+
+use App\Convert\PdfToDocxConvert;
+use App\Convert\DocxToPdfConvert;
+use UnhandledMatchError;
+
+class FactoryMethod
+{
+    static function formatToConvert($format, $filename) {
+        try {
+            
+            return match ($format) {
+                "pdf" => DocxToPdfConvert::convert( $filename),
+                "docx" => PdfToDocxConvert::convert($filename),
+                default => UnhandledMatchError::class
+            };
+        } catch (\UnhandledMatchError $e) {
+            echo "Formato no válido: $format";
+            echo $e->getMessage();
+        }
+    }
+}
+```
+
 ## Trabajando con archivos .docx
 
 <p>
-    Para lograr la conversión correctame de los archivos con extensión **.docx** es algo complicado debido que es un Zip comprimido y, además en un formato XML. Sin embargo, para poder leer el contenido de un archivo word, es necesario usar las librería `phpoffice/phpword` y `tecnickcom/tcpdf`.
+    Para lograr la conversión correcta de los archivos con extensión **.docx** es algo complicado debido que es un Zip comprimido y, además en un formato XML. Sin embargo, para poder leer el contenido de un archivo word, es necesario usar las librería `phpoffice/phpword` y `tecnickcom/tcpdf`.
 </p>
 
 
 ```
+namespace App\Convert;
+
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\Settings;
 
-// config
-Settings::setPdfRendererPath(__DIR__ . '/../vendor/tecnickcom/tcpdf');
-Settings::setPdfRendererName(Settings::PDF_RENDERER_TCPDF);
+use App\Interface\IConvert;
+use Exception;
 
-// Leemos el archivo guardado en el servidor
-$phpWord = IOFactory::load($pathFiles . basename($filename));
-        
-// Conversión y guardado
-$fileWrite = IOFactory::createWriter($phpWord, "PDF");
-$fileWrite->save(__DIR__ . "/uploads/{$filename}.pdf");
+class DocxToPdfConvert implements IConvert
+{
+    
+    private static $pathFilesSaved = __DIR__ . '/../../public/uploads/';
+
+    static function convert($filename)
+    {
+        try {
+            Settings::setPdfRendererPath(__DIR__ . '/../../vendor/tecnickcom/tcpdf');
+            Settings::setPdfRendererName(Settings::PDF_RENDERER_TCPDF);
+            
+            $readFile = self::$pathFilesSaved . $filename;
+            $phpWord = IOFactory::load($readFile);
+            
+            $fileWrite = IOFactory::createWriter($phpWord, "PDF");
+            $fileWrite->save(self::$pathFilesSaved . $filename . ".pdf");
+
+            if(!$fileWrite) return "No se Convitió";
+            return $fileWrite;
+            
+        } catch (Exception $e) {
+            echo "Error: " . $e->getMessage() . "\n";
+            echo "Linea Del Error: " . $e->getLine();
+        }   
+    }
+}
 ```
 
 ## Trabajando con archivos .pdf
@@ -56,34 +114,48 @@ $fileWrite->save(__DIR__ . "/uploads/{$filename}.pdf");
 </p>
 
 ```
- Smalot\PdfParser\Parser
+ Snamespace App\Convert;
+
+use Exception;
+
+use App\Interface\IConvert;
+use PhpOffice\PhpWord\IOFactory;
+use Smalot\PdfParser\Parser;
+use PhpOffice\PhpWord\PhpWord;
 
 
-//Subida al servidor
- $filename = $_FILES["file"]["name"];
- $pathFiles =  __DIR__ . '/uploads/' ;
+class PdfToDocxConvert implements IConvert
+{
+    private static $pathFilesSaved = __DIR__ . '/../../public/uploads/';
+    
+    function __construct(
+        private Parser $parser = new Parser,
+        private PhpWord $documentWord = new PhpWord
+    )
+    {}
 
- $tmp_file = $_FILES["file"]["tmp_name"];
-        
- move_uploaded_file($tmp_file, $pathFiles . basename($filename));
+    static function convert($filename)
+    {
+        try {
+            $documents = new self(new Parser(), new PhpWord());
+            $document = $documents->parser->parseFile(self::$pathFilesSaved . $filename);
+            
+            // Extrear texto
+            $texts = "";
+            foreach ($document->getPages() as $index => $page) {
+                $texts .= $page->getText();
+            }
+            
+            $section = $documents->documentWord->addSection();
+            $section->addText($texts);
 
- // Uso de la librería           
- $parseador = new Parser;
- $document = $parseador->parseFile($pathFiles . basename($filename));
-        
- // Extrear texto
- $texts = "";
- foreach ($document->getPages() as $index => $page) {
-     printf("<h1> Página #%02d </h1>", $index + 1);
-     var_dump($page->getText());
- }
+            $write = IOFactory::createWriter($documents->documentWord, "Word2007");
+            $write->save(self::$pathFilesSaved . $filename . ".docx");
 
- // Creando el documento docx
- $documentWord = new PhpWord;
- $section = $documentWord->addSection();
- $section->addText($texts);
-
- // Escribiendo y guardando datos en el documento docx
- $write = IOFactory::createWriter($documentWord, "Word2007");
- $write->save($pathFiles . $filename . ".docx");
+        } catch (Exception $e) {
+            echo "Error: " . $e->getMessage() . "\n";
+            echo "Linea Del Error: " . $e->getLine();
+        }   
+    }
+}
  ```
