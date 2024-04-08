@@ -22,7 +22,7 @@
                 <label for="format" class="block text-sm font-medium text-gray-700">Tipo de archivo:</label>
                 <select id="format" name="format" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     <option value="pdf">PDF</option>
-                    <option value="word">Word</option>
+                    <option value="docx">Word</option>
                 </select>
             </div>
             
