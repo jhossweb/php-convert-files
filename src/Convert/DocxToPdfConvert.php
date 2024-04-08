@@ -24,6 +24,9 @@ class DocxToPdfConvert implements IConvert
             
             $fileWrite = IOFactory::createWriter($phpWord, "PDF");
             $fileWrite->save(self::$pathFilesSaved . $filename . ".pdf");
+
+            if(!$fileWrite) return "No se Convitió";
+            return $fileWrite;
             
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage() . "\n";
